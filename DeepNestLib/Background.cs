@@ -1,4 +1,4 @@
-﻿using ClipperLib;
+using ClipperLib;
 using Minkowski;
 using System;
 using System.Collections.Generic;
@@ -33,164 +33,197 @@ namespace DeepNestLib
             return shifted;
         }
 
-
         // returns the square of the length of any merged lines
         // filter out any lines less than minlength long
         public static MergedResult mergedLength(NFP[] parts, NFP p, double minlength, double tolerance)
         {
-            //            var min2 = minlength * minlength;
-            //            var totalLength = 0;
-            //            var segments = [];
+            SvgPoint A1;
+            SvgPoint A2;
 
-            //            for (var i = 0; i < p.length; i++)
-            //            {
-            //                var A1 = p[i];
+            double minpower2 = minlength * minlength;
+            double totalLength = 0;
 
-            //                if (i + 1 == p.length)
-            //                {
-            //                    A2 = p[0];
-            //                }
-            //                else
-            //                {
-            //                    var A2 = p[i + 1];
-            //                }
+            List<Segment> segments = new List<Segment>();
 
-            //                if (!A1.exact || !A2.exact)
-            //                {
-            //                    continue;
-            //                }
+            for (var i = 0; i < p.length; i++)
+            {
+                A1 = p[i];
 
-            //                var Ax2 = (A2.x - A1.x) * (A2.x - A1.x);
-            //                var Ay2 = (A2.y - A1.y) * (A2.y - A1.y);
+                if (i + 1 == p.length)
+                {
+                    A2 = p[0];
+                }
+                else
+                {
+                    A2 = p[i + 1];
+                }
 
-            //                if (Ax2 + Ay2 < min2)
-            //                {
-            //                    continue;
-            //                }
+                if (!A1.exact || !A2.exact)
+                {
+                    continue;
+                }
 
-            //                var angle = Math.atan2((A2.y - A1.y), (A2.x - A1.x));
+                double Ax2 = (A2.x - A1.x) * (A2.x - A1.x);
+                double Ay2 = (A2.y - A1.y) * (A2.y - A1.y);
 
-            //                var c = Math.cos(-angle);
-            //                var s = Math.sin(-angle);
+                if (Ax2 + Ay2 < minpower2)
+                {
+                    continue;
+                }
 
-            //                var c2 = Math.cos(angle);
-            //                var s2 = Math.sin(angle);
+                double angle = Math.Atan2((A2.y - A1.y), (A2.x - A1.x));
 
-            //                var relA2 = { x: A2.x - A1.x, y: A2.y - A1.y};
-            //            var rotA2x = relA2.x * c - relA2.y * s;
+                double c = Math.Cos(-angle);
+                double s = Math.Sin(-angle);
 
-            //            for (var j = 0; j < parts.length; j++)
-            //            {
-            //                var B = parts[j];
-            //                if (B.length > 1)
-            //                {
-            //                    for (var k = 0; k < B.length; k++)
-            //                    {
-            //                        var B1 = B[k];
-
-            //                        if (k + 1 == B.length)
-            //                        {
-            //                            var B2 = B[0];
-            //                        }
-            //                        else
-            //                        {
-            //                            var B2 = B[k + 1];
-            //                        }
-
-            //                        if (!B1.exact || !B2.exact)
-            //                        {
-            //                            continue;
-            //                        }
-            //                        var Bx2 = (B2.x - B1.x) * (B2.x - B1.x);
-            //                        var By2 = (B2.y - B1.y) * (B2.y - B1.y);
-
-            //                        if (Bx2 + By2 < min2)
-            //                        {
-            //                            continue;
-            //                        }
-
-            //                        // B relative to A1 (our point of rotation)
-            //                        var relB1 = { x: B1.x - A1.x, y: B1.y - A1.y};
-            //                    var relB2 = { x: B2.x - A1.x, y: B2.y - A1.y};
+                double c2 = Math.Cos(angle);
+                double s2 = Math.Sin(angle);
 
 
-            //                // rotate such that A1 and A2 are horizontal
-            //                var rotB1 = { x: relB1.x* c -relB1.y * s, y: relB1.x* s +relB1.y * c};
-            //            var rotB2 = { x: relB2.x* c -relB2.y * s, y: relB2.x* s +relB2.y * c};
+                PointD relA2 = new PointD(A2.x - A1.x, A2.y - A1.y);
 
-            //					if(!GeometryUtil.almostEqual(rotB1.y, 0, tolerance) || !GeometryUtil.almostEqual(rotB2.y, 0, tolerance)){
-            //						continue;
-            //					}
+                double rotA2x = relA2.X * c - relA2.Y * s;
 
-            //					var min1 = Math.min(0, rotA2x);
-            //        var max1 = Math.max(0, rotA2x);
+                for (var j = 0; j < parts.Length; j++)
+                {
+                    var B = parts[j];
+                    if (B.length > 1)
+                    {
+                        for (var k = 0; k < B.length; k++)
+                        {
+                            SvgPoint B1 = B[k];
+                            SvgPoint B2;
+                            if (k + 1 == B.length)
+                            {
+                                B2 = B[0];
+                            }
+                            else
+                            {
+                                B2 = B[k + 1];
+                            }
 
-            //        var min2 = Math.min(rotB1.x, rotB2.x);
-            //        var max2 = Math.max(rotB1.x, rotB2.x);
+                            if (!B1.exact || !B2.exact)
+                            {
+                                continue;
+                            }
+                            var Bx2 = (B2.x - B1.x) * (B2.x - B1.x);
+                            var By2 = (B2.y - B1.y) * (B2.y - B1.y);
 
-            //					// not overlapping
-            //					if(min2 >= max1 || max2 <= min1){
-            //						continue;
-            //					}
+                            if (Bx2 + By2 < minpower2)
+                            {
+                                continue;
+                            }
 
-            //					var len = 0;
-            //        var relC1x = 0;
-            //        var relC2x = 0;
+                            // B relative to A1 (our point of rotation)
+                            PointD relB1 = new PointD(B1.x - A1.x, B1.y - A1.y);
 
-            //					// A is B
-            //					if(GeometryUtil.almostEqual(min1, min2) && GeometryUtil.almostEqual(max1, max2)){
-            //						len = max1-min1;
-            //						relC1x = min1;
-            //						relC2x = max1;
-            //					}
-            //					// A inside B
-            //					else if(min1 > min2 && max1<max2){
-            //						len = max1-min1;
-            //						relC1x = min1;
-            //						relC2x = max1;
-            //					}
-            //					// B inside A
-            //					else if(min2 > min1 && max2<max1){
-            //						len = max2-min2;
-            //						relC1x = min2;
-            //						relC2x = max2;
-            //					}
-            //					else{
-            //						len = Math.max(0, Math.min(max1, max2) - Math.max(min1, min2));
-            //						relC1x = Math.min(max1, max2);
-            //						relC2x = Math.max(min1, min2);		
-            //					}
+                            PointD relB2 = new PointD(B2.x - A1.x, B2.y - A1.y);
 
-            //					if(len* len > min2){
-            //						totalLength += len;
+                            // rotate such that A1 and A2 are horizontal
+                            PointD rotB1 = new PointD(relB1.X * c - relB1.Y * s, relB1.X * s + relB1.Y * c);
 
-            //						var relC1 = { x: relC1x * c2, y: relC1x * s2 };
-            //var relC2 = { x: relC2x * c2, y: relC2x * s2 };
+                            PointD rotB2 = new PointD(relB2.X * c - relB2.Y * s, relB2.X * s + relB2.Y * c);
 
-            //var C1 = { x: relC1.x + A1.x, y: relC1.y + A1.y };
-            //var C2 = { x: relC2.x + A1.x, y: relC2.y + A1.y };
+                            if (!GeometryUtil._almostEqual(rotB1.Y, 0, tolerance) || !GeometryUtil._almostEqual(rotB2.Y, 0, tolerance))
+                            {
+                                continue;
+                            }
 
-            //segments.push([C1, C2]);
-            //					}
-            //				}
-            //			}
+                            double min1 = Math.Min(0, rotA2x);
+                            double max1 = Math.Max(0, rotA2x);
 
-            //			if(B.children && B.children.length > 0){
-            //				var child = mergedLength(B.children, p, minlength, tolerance);
-            //totalLength += child.totalLength;
-            //				segments = segments.concat(child.segments);
-            //			}
-            //		}
-            //	}
+                            double min2 = Math.Min(rotB1.X, rotB2.X);
+                            double max2 = Math.Max(rotB1.X, rotB2.X);
 
-            //	return {totalLength: totalLength, segments: segments};
-            throw new NotImplementedException();
+                            // not overlapping
+                            if (min2 >= max1 || max2 <= min1)
+                            {
+                                continue;
+                            }
+
+                            double len = 0;
+                            double relC1x = 0;
+                            double relC2x = 0;
+
+                            // A is B
+                            if (GeometryUtil._almostEqual(min1, min2) && GeometryUtil._almostEqual(max1, max2))
+                            {
+                                len = max1 - min1;
+                                relC1x = min1;
+                                relC2x = max1;
+                            }
+                            // A inside B
+                            else if (min1 > min2 && max1 < max2)
+                            {
+                                len = max1 - min1;
+                                relC1x = min1;
+                                relC2x = max1;
+                            }
+                            // B inside A
+                            else if (min2 > min1 && max2 < max1)
+                            {
+                                len = max2 - min2;
+                                relC1x = min2;
+                                relC2x = max2;
+                            }
+                            else
+                            {
+                                len = Math.Max(0, Math.Min(max1, max2) - Math.Max(min1, min2));
+                                relC1x = Math.Min(max1, max2);
+                                relC2x = Math.Max(min1, min2);
+                            }
+
+                            if (len * len > min2)
+                            {
+                                totalLength += len;
+
+                                PointD relC1 = new PointD(relC1x * c2, relC1x * s2);
+
+                                PointD relC2 = new PointD(relC2x * c2, relC2x * s2);
+
+                                PointD C1 = new PointD(relC1.X + A1.x, relC1.Y + A1.y);
+
+                                PointD C2 = new PointD(relC2.X + A1.x, relC2.Y + A1.y);
+
+                                segments.Add(new Segment(C1, C2));
+                            }
+                        }
+                    }
+
+                    if (B.children != null && B.children.Count > 0)
+                    {
+                        var child = mergedLength(B.children.ToArray(), p, minlength, tolerance);
+                        totalLength += child.totalLength;
+                        segments.AddRange(child.segments);
+                    }
+                }
+            }
+
+            return new MergedResult { totalLength = totalLength, segments = segments };
         }
 
         public class MergedResult
         {
             public double totalLength;
-            public object segments;
+            public List<Segment> segments;
+        }
+
+        public class Segment
+        {
+            public PointD S1;
+            public PointD S2;
+            public Segment(PointD S1, PointD S2)
+            {
+                this.S1 = S1;
+                this.S2 = S2;
+            }
+        }
+        public struct PointD
+        {
+            public double X;
+            public double Y;
+            public PointD(double X, double Y)
+            { this.X = X; this.Y = Y; }
         }
 
 
@@ -244,7 +277,7 @@ namespace DeepNestLib
         public static NFP[] Process2(NFP A, NFP B, int type)
         {
             var key = A.source + ";" + B.source + ";" + A.rotation + ";" + B.rotation;
-            bool cacheAllow = type != 1;            
+            bool cacheAllow = type != 1;
             if (cacheProcess.ContainsKey(key) && cacheAllow)
             {
                 return cacheProcess[key];
@@ -420,7 +453,7 @@ namespace DeepNestLib
 
             var frame = getFrame(A);
 
-            var nfp = getOuterNfp(frame, B,  type, true);
+            var nfp = getOuterNfp(frame, B, type, true);
 
             if (nfp == null || nfp.children == null || nfp.children.Count == 0)
             {
@@ -519,8 +552,10 @@ namespace DeepNestLib
 
         public static SheetPlacement placeParts(NFP[] sheets, NFP[] parts, SvgNestConfig config, int nestindex)
         {
-            if (sheets == null || sheets.Count() == 0) return null;
-
+            if (sheets == null || sheets.Count() == 0)
+            {
+                return null;
+            }
 
             int i, j, k, m, n;
             double totalsheetarea = 0;
@@ -880,7 +915,7 @@ namespace DeepNestLib
                             MergedResult merged = null;
                             if (config.mergeLines)
                             {
-                                throw new NotImplementedException();
+                                //throw new NotImplementedException();
                                 // if lines can be merged, subtract savings from area calculation						
                                 var shiftedpart = shiftPolygon(part, shiftvector);
                                 List<NFP> shiftedplaced = new List<NFP>();
